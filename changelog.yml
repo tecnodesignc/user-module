@@ -1,5 +1,8 @@
 url: https://github.com/EncoreCms/Platform
 versions:
     "1.0.0":
-        changed:
+        added:
             - Initial release
+    "1.0.1":
+        added:
+            - Controler Api Admin
