@@ -46,7 +46,7 @@ class AuthController extends BasePublicController
         $user = $this->auth->user();
         event(new UserLoggedIn($user));
 
-        return redirect()->intended(route(config('asgard.user.config.redirect_route_after_login')))
+        return redirect()->intended(route(config('encore.user.config.redirect_route_after_login')))
                 ->withSuccess(trans('user::messages.successfully logged in'));
     }
 
