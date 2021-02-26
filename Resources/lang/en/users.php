@@ -35,6 +35,9 @@ return [
         'new password confirmation' => 'New password confirmation',
         'is activated' => 'Activated',
         'roles' => 'Roles',
+        'full-name'=>'Full Name',
+        'phone'=>'Phone',
+        'bio'=>'Biography'
     ],
     'table' => [
         'created-at' => 'Created At',

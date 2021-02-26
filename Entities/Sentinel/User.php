@@ -8,14 +8,16 @@ use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Laracasts\Presenter\PresentableTrait;
 use Laravel\Scout\Searchable;
+use Modules\Media\Support\Traits\MediaRelation;
 use Modules\User\Entities\UserInterface;
 use Modules\User\Entities\UserToken;
 use Modules\User\Presenters\UserPresenter;
 use Laravel\Passport\HasApiTokens;
+use Modules\Media\Entities\File;
 
 class User extends EloquentUser implements UserInterface, AuthenticatableContract
 {
-    use PresentableTrait, Authenticatable, HasApiTokens, Searchable;
+    use PresentableTrait, Authenticatable, HasApiTokens, Searchable,MediaRelation;
 
     protected $fillable = [
         'email',
@@ -23,6 +25,15 @@ class User extends EloquentUser implements UserInterface, AuthenticatableContrac
         'permissions',
         'first_name',
         'last_name',
+        'fields'
+    ];
+    /**
+     * The attributes that should be casted to native types.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'fields' => 'json'
     ];
 
     /**
@@ -76,6 +87,13 @@ class User extends EloquentUser implements UserInterface, AuthenticatableContrac
     /**
      * @inheritdoc
      */
+    public function getFieldsAttribute($value)
+    {
+        return json_decode($value);
+    }
+    /**
+     * @inheritdoc
+     */
     public function isActivated()
     {
         if (Activation::completed($this)) {
@@ -107,6 +125,23 @@ class User extends EloquentUser implements UserInterface, AuthenticatableContrac
         return $userToken->access_token;
     }
 
+    public function getMainImageAttribute()
+    {
+        $thumbnail = $this->files()->where('zone', 'mainimage')->first();
+        if (!$thumbnail) {
+            $image = [
+                'mimeType' => 'image/jpeg',
+                'path' => null
+            ];
+        } else {
+            $image = [
+                'mimeType' => $thumbnail->mimetype,
+                'path' => $thumbnail->path_string
+            ];
+        }
+        return json_decode(json_encode($image));
+
+    }
     public function __call($method, $parameters)
     {
         #i: Convert array to dot notation
@@ -144,4 +179,5 @@ class User extends EloquentUser implements UserInterface, AuthenticatableContrac
         ];
         return $array;
     }
+
 }

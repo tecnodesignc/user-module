@@ -13,6 +13,7 @@ use Modules\User\Events\UserHasRegistered;
 use Modules\User\Events\UserIsCreating;
 use Modules\User\Events\UserIsUpdating;
 use Modules\User\Events\UserWasCreated;
+use Modules\User\Events\UserWasDeleted;
 use Modules\User\Events\UserWasUpdated;
 use Modules\User\Exceptions\UserNotFoundException;
 use Modules\User\Repositories\UserRepository;
@@ -58,7 +59,7 @@ class SentinelUserRepository implements UserRepository
 
         if ($activated) {
             $this->activateUser($user);
-            event(new UserWasCreated($user));
+            event(new UserWasCreated($user,$data));
         } else {
             event(new UserHasRegistered($user));
         }
@@ -134,7 +135,7 @@ class SentinelUserRepository implements UserRepository
         $user->fill($event->getAttributes());
         $user->save();
 
-        event(new UserWasUpdated($user));
+        event(new UserWasUpdated($user,$data));
 
         return $user;
     }
@@ -159,7 +160,7 @@ class SentinelUserRepository implements UserRepository
         $user->fill($event->getAttributes());
         $user->save();
 
-        event(new UserWasUpdated($user));
+        event(new UserWasUpdated($user,$data));
 
         if (!empty($roles)) {
             $user->roles()->sync($roles);
@@ -177,7 +178,7 @@ class SentinelUserRepository implements UserRepository
         if ($user = $this->user->find($id)) {
             return $user->delete();
         }
-
+        event(new UserWasDeleted($user->id, get_class($user)));
         throw new UserNotFoundException();
     }
 
@@ -260,11 +261,11 @@ class SentinelUserRepository implements UserRepository
      */
     private function checkForManualActivation($user, array &$data)
     {
-        if (Activation::completed($user) && !$data['activated']) {
+        if (Activation::completed($user) && !$data['is_activated']) {
             return Activation::remove($user);
         }
 
-        if (!Activation::completed($user) && $data['activated']) {
+        if (!Activation::completed($user) && $data['is_activated']) {
             $activation = Activation::create($user);
 
             return Activation::complete($user, $activation->code);

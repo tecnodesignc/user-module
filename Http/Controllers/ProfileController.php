@@ -1,44 +1,44 @@
 <?php
 
-namespace Modules\User\Http\Controllers\Admin\Account;
+namespace Modules\User\Http\Controllers;
 
 use Illuminate\Http\Response;
-use Illuminate\Http\Request;
-use Modules\Core\Http\Controllers\Admin\AdminBaseController;
-use Modules\User\Contracts\Authentication;
+use Modules\Core\Http\Controllers\BasePublicController;
 use Modules\User\Http\Requests\UpdateProfileRequest;
 use Modules\User\Repositories\UserRepository;
 
-class ProfileController extends AdminBaseController
+class ProfileController extends BasePublicController
 {
     /**
      * @var UserRepository
      */
     private $user;
 
-    /**
-     * @var Authentication
-     */
-    private $auth;
-
-    public function __construct(UserRepository $user, Authentication $auth)
+    public function __construct(UserRepository $user)
     {
         parent::__construct();
         $this->user = $user;
-        $this->auth = $auth;
     }
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int $id
+     * @return Response
+     */
+    public function show()
+    {
+        return view('user::public.account.profile.show');
+    }
+
+
+    /**
+     * Show the form for editing the specified resource.
      *
      * @return Response
      */
     public function edit()
     {
-        $user=$this->auth->user();
-        return view('user::admin.account.profile.edit',compact('user'));
+        return view('user::public.account.profile.edit');
     }
 
     /**
@@ -49,7 +49,7 @@ class ProfileController extends AdminBaseController
      *
      * @return Response
      */
-    public function update(Request $request)
+    public function update(UpdateProfileRequest $request)
     {
         $user = $this->auth->user();
 

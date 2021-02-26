@@ -20,7 +20,7 @@ class FullRoleTransformer extends JsonResource
             'permissions' => $permissions,
             'users' => UserTransformer::collection($this->whenLoaded('users')),
             'urls' => [
-                'delete_url' => route('api.user.role.destroy', $this->id),
+                'delete_url' => route('api.user.role.destroy', $this->id??'0'),
             ],
         ];
 

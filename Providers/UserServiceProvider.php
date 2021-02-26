@@ -123,9 +123,9 @@ class UserServiceProvider extends ServiceProvider
     private function registerBindings()
     {
         $driver = config('encore.user.config.driver', 'Sentinel');
-
         $this->app->bind(
             UserRepository::class,
+
             "Modules\\User\\Repositories\\{$driver}\\{$driver}UserRepository"
         );
         $this->app->bind(

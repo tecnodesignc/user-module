@@ -11,7 +11,6 @@ class FullUserTransformer extends JsonResource
     {
         $permissionsManager = app(PermissionManager::class);
         $permissions = $this->buildPermissionList($permissionsManager->all());
-
         $data = [
             'id' => $this->id,
             'first_name' => $this->first_name,
@@ -23,7 +22,7 @@ class FullUserTransformer extends JsonResource
             'permissions' => $permissions,
             'roles' => $this->roles->pluck('id'),
             'urls' => [
-                'delete_url' => route('api.user.user.destroy', $this->id),
+                'delete_url' => route('api.user.user.destroy', $this->id??0),
             ],
         ];
 

@@ -3,6 +3,7 @@
 namespace Modules\User\Presenters;
 
 use Laracasts\Presenter\Presenter;
+use Modules\Media\Entities\File;
 
 class UserPresenter extends Presenter
 {
@@ -13,9 +14,14 @@ class UserPresenter extends Presenter
      */
     public function gravatar($size = 90)
     {
-        $email = md5($this->email);
 
-        return "https://www.gravatar.com/avatar/$email?s=$size";
+        if (!isset($this->mainimage->path)) {
+            $email = md5($this->email);
+            $image="https://www.gravatar.com/avatar/$email?s=$size";
+        } else {
+            $image=$this->mainimage->path;
+        }
+        return $image;
     }
 
     /**

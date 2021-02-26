@@ -29,6 +29,8 @@
                                           :class="{'error' : form.errors.any()}">
                                         {{ trans('users.tabs.data') }}
                                     </span>
+                                    <single-media zone="image" @singleFileSelected="selectSingleFile($event, 'user')"
+                                                  entity="Modules\User\Entities\Sentinel\User" :entity-id="$route.params.pageId"></single-media>
                                     <el-form-item :label="trans('users.form.first-name')"
                                                   :class="{'el-form-item is-error': form.errors.has('first_name') }">
                                         <el-input v-model="user.first_name"></el-input>

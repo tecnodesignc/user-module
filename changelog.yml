@@ -9,3 +9,10 @@ versions:
     "1.0.2":
         added:
             - Changed by encore
+    "1.0.3":
+        added:
+            - PermissionsController
+            - Profile Controller
+            - fake fields column for profile Data
+            - Media integration for profile Photo
+            -

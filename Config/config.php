@@ -61,7 +61,25 @@ return [
         'permissions',
         'first_name',
         'last_name',
+        'fields'
     ],
+    /*
+    |--------------------------------------------------------------------------
+    | Fillable user fields
+    |--------------------------------------------------------------------------
+    | Set the fillable user fields, those fields will be mass assigned
+    */
+    'fiels' => [
+        'document'=>[
+            'type'=>'text',
+            'description'=>'document',
+        ],
+        'bio'=>[
+            'type'=>'textarea',
+            'description'=>'bio',
+        ],
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Custom date fields

@@ -24,3 +24,18 @@ $router->group(['prefix' => 'auth'], function (Router $router) {
 });
 
 $router->redirect('.well-known/change-password', route('reset'));
+$router->group(['prefix' => 'account', 'middleware' => ['auth']], function (Router $router) {
+    $router->get('profile', [
+        'as' => 'account.profile.show',
+        'uses' => 'ProfileController@show'
+    ]);
+    $router->put('profile', [
+        'as' => 'account.profile.update',
+        'uses' => 'ProfileController@update'
+    ]);
+    $router->get('profile/edit', [
+        'as' => 'account.profile.edit',
+        'uses' => 'ProfileController@edit'
+    ]);
+
+});
