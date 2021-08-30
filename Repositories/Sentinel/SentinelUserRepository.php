@@ -161,7 +161,6 @@ class SentinelUserRepository implements UserRepository
         $user->save();
 
         event(new UserWasUpdated($user,$data));
-
         if (!empty($roles)) {
             $user->roles()->sync($roles);
         }
@@ -337,12 +336,6 @@ class SentinelUserRepository implements UserRepository
                 });
             }
 
-            //Filter by user ID
-            if (isset($filter->userId) && count($filter->userId)) {
-                $query->whereIn('users.id', $filter->userId);
-            }
-
-
             //filter by Role ID
             if (isset($filter->roleId) && ((int)$filter->roleId) != 0) {
                 $query->whereIn('id', function ($query) use ($filter) {
@@ -368,7 +361,13 @@ class SentinelUserRepository implements UserRepository
 
             //add filter by search
             if (isset($filter->search) && $filter->search) {
-                $query->search($filter->search);
+                $query->where(function ($query) use ($filter) {
+                    $query->where('users.id', 'like', '%' . $filter->search . '%')
+                        ->orWhere('first_name', 'like', '%' . $filter->search . '%')
+                        ->orWhereRaw('CONCAT(first_name,\' \',last_name) like ?', ['%' . $filter->search . '%'])
+                        ->orWhere('last_name', 'like', '%' . $filter->search . '%')
+                        ->orWhere('email', 'like', '%' . $filter->search . '%');
+                });
             }
             if (isset($filter->age)) {
                 $age = $filter->age;//Short filter date

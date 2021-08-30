@@ -70,14 +70,17 @@ return [
     | Set the fillable user fields, those fields will be mass assigned
     */
     'fiels' => [
-        'document'=>[
+       /* 'document'=>[
             'type'=>'text',
             'description'=>'document',
         ],
         'bio'=>[
             'type'=>'textarea',
             'description'=>'bio',
-        ],
+        ],*/
+        'rules'=>[
+           // 'identification' => 'required|min:3',
+        ]
     ],
 
     /*
@@ -96,6 +99,7 @@ return [
     */
     'casts' => [
         'permissions' => 'json',
+        'fields' => 'json'
     ],
     /*
      |--------------------------------------------------------------------------

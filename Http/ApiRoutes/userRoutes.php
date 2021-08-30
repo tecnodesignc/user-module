@@ -5,12 +5,7 @@ use Illuminate\Routing\Router;
 $router->group(['prefix' => '/users'], function (Router $router) {
     $locale = \LaravelLocalization::setLocale() ?: \App::getLocale();
 
-    $router->post('/register', [
-        'as' => 'api.user.users.register',
-        'uses' => 'UserApiController@register',
-        //'middleware' => ['captcha']
-    ]);
-    $router->post('/', [
+    $router->post('/create', [
         'as' => 'api.user.users.create',
         'uses' => 'UserApiController@create',
         'middleware' => ['auth:api']
@@ -23,7 +18,7 @@ $router->group(['prefix' => '/users'], function (Router $router) {
     $router->put('change-password', [
         'as' => 'api.user.change.password',
         'uses' => 'UserApiController@changePassword',
-        //'middleware' => ['auth:api']
+        'middleware' => ['auth:api']
     ]);
     $router->get('me', [
         'as' => 'api.user.users.me',
@@ -43,18 +38,6 @@ $router->group(['prefix' => '/users'], function (Router $router) {
     $router->get('/{criteria}', [
         'as' => 'api.user.users.show',
         'uses' => 'UserApiController@show',
-        'middleware' => ['auth:api']
-    ]);
-
-
-    $router->post('/media/upload', [
-        'as' => 'api.profile.users.media.upload',
-        'uses' => 'UserApiController@mediaUpload',
-        'middleware' => ['auth:api']
-    ]);
-    $router->post('/media/delete', [
-        'as' => 'api.profile.users.media.delete',
-        'uses' => 'UserApiController@mediaDelete',
         'middleware' => ['auth:api']
     ]);
 });

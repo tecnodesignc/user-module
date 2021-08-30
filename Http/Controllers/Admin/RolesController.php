@@ -95,4 +95,16 @@ class RolesController extends BaseUserModuleController
         return redirect()->route('admin.user.role.index')
             ->withSuccess(trans('user::messages.role deleted'));
     }
+
+
+    /**
+     * @param Request $request
+     * @return array
+     */
+    protected function mergeRequestWithPermissions($request)
+    {
+        $permissions = $this->permissions->clean($request->permissions);
+
+        return array_merge($request, ['permissions' => $permissions]);
+    }
 }

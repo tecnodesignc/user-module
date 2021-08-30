@@ -113,27 +113,19 @@ $router->group(['prefix' => '/user', 'middleware' => ['api.token', 'auth.admin']
         'middleware' => 'token-can:user.roles.index',
     ]);
 });
-
+$router->group(['prefix' => '/user/v1'], function (Router $router) {
 //======  AUTH
-require('ApiRoutes/authRoutes.php');
-
-/*//======  ADDRESSES
-require('ApiRoutes/addressRoutes.php');*/
-
-/*//======  FIELDS
-require('ApiRoutes/fieldRoutes.php');*/
-
-/*//======  DEPARTMENTS
-require('ApiRoutes/departmentRoutes.php');
-
-//======  DEPARTMENT SETTINGS
-require('ApiRoutes/settingRoutes.php');*/
+    require('ApiRoutes/authRoutes.php');
 
 //======  ROLES
-require('ApiRoutes/roleRoutes.php');
+    require('ApiRoutes/roleRoutes.php');
 
 //======  USERS
-require('ApiRoutes/userRoutes.php');
+    require('ApiRoutes/userRoutes.php');
 
-//======  APP
-/*require('ApiRoutes/appRoutes.php');*/
+    $router->get('/permissions', [
+        'as' => 'api.user.permissions',
+        'uses' => 'PermissionsApiController@index',
+        //'middleware' => ['auth:api']
+    ]);
+});

@@ -5,15 +5,19 @@ namespace Modules\User\Http\Controllers\Api;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Modules\Core\Http\Controllers\Api\BaseApiController;
+use Modules\History\Services\History;
 use Modules\User\Contracts\Authentication;
 use Modules\User\Entities\Sentinel\User;
 use Modules\User\Events\UserHasBegunResetProcess;
+use Modules\User\Http\Requests\CreateFieldsUserRequest;
 use Modules\User\Http\Requests\CreateUserRequest;
 use Modules\User\Http\Requests\RegisterRequest;
+use Modules\User\Http\Requests\UpdateUserApiRequest;
 use Modules\User\Http\Requests\UpdateUserRequest;
 use Modules\User\Permissions\PermissionManager;
 use Modules\User\Repositories\UserRepository;
-use Modules\User\Transformers\UserTransformer;
+use Modules\User\Transformers\News\FullUserTransformer;
+use Modules\User\Transformers\News\UserTransformer;
 use Modules\User\Services\UserRegistration;
 use Cartalyst\Sentinel\Laravel\Facades\Activation;
 
@@ -28,7 +32,12 @@ class UserApiController extends BaseApiController
      */
     private $permissions;
 
-    public function __construct(UserRepository $user, PermissionManager $permissions)
+    /**
+     * @var History
+     */
+    private $serviceHistory;
+
+    public function __construct(UserRepository $user, PermissionManager $permissions,  History $serviceHistory)
     {
         $this->user = $user;
         $this->permissions = $permissions;
@@ -56,12 +65,13 @@ class UserApiController extends BaseApiController
             //If request pagination add meta-page
             $params->page ? $response["meta"] = ["page" => $this->pageTransformer($users)] : false;
         } catch (\Exception $e) {
+            \Log::Error($e);
             $status = $this->getStatusError($e->getCode());
             $response = ["errors" => $e->getMessage()];
         }
 
         //Return response
-        return response()->json($response, $status ?? 200);
+        return response()->json($response ?? ["data" => "Request successful"], $status ?? 200);
     }
 
     /**
@@ -84,7 +94,7 @@ class UserApiController extends BaseApiController
 
             //Response
             //Response
-            $response = ["data" => new UserTransformer($user)];
+            $response = ["data" => new FullUserTransformer($user)];
 
             //If request pagination add meta-page
             $params->page ? $response["meta"] = ["page" => $this->pageTransformer($user)] : false;
@@ -104,43 +114,18 @@ class UserApiController extends BaseApiController
      * @param Request $request
      * @return mixed
      */
-    public function register(Request $request)
+    public function create(Request $request)
     {
         try {
-            $data = (object)$request->input('attributes');//Get data from request
-            $filter = [];//define filters
-            $validateEmail = config()->get('encore.user.validate');
-            //Validate custom Request user
-            $this->validateRequestApi(new CreateUserRequest((array)$data));
+            //Validate permissions
+            $this->validatePermission($request, 'user.user.create');
+            $data = $request->input('attributes');//Get data from request
 
-            //Format dat ot create user
-            $params = [
-                'attributes' => [
-                    'first_name' => $data->first_name,
-                    'last_name' => $data->last_name,
-                    'fields' => $data->fields,
-                    'email' => $data->email,
-                    'password' => $data->password,
-                    'password_confirmation' => $data->password_confirmation,
-                    'activated' => (int)$validateEmail ? false : true
-                ],
-                'filter' => json_encode([
-                    'checkEmail' => (int)$validateEmail ? 1 : 0
-                ])
-            ];
-
-
-            if (isset($data->roles) && !in_array(1, $data->roles)) {
-                $params['attributes']['roles'] =  $data->roles;
-            } else {
-                $params['attributes']['roles'] =  [2];
-            }
-
-            //Create user
-            $user = $this->validateResponseApi($this->create(new Request($params)));
-
-            //Response and especific if user required check email
-            $response = ["data" => ['checkEmail' => (int)$validateEmail ? true : false]];
+            $data['fields'] = $this->validateFields($data['fields']);
+            $this->validateRequestApi(new CreateUserRequest($data));
+            $this->validateRequestApi(new CreateFieldsUserRequest($data['fields']));
+            $this->user->createWithRoles($data, $data['roles'] ?? null, true);
+            $response = ["data" => ['msg' => trans('user::messages.user created')]];
         } catch (\Exception $e) {
             \Log::error($e);
             $status = $this->getStatusError($e->getCode());
@@ -152,34 +137,54 @@ class UserApiController extends BaseApiController
     }
 
     /**
-     * CREATE A ITEM
+     * UPDATE ITEM
      *
+     * @param $criteria
      * @param Request $request
      * @return mixed
      */
-    public function create(Request $request)
+    public function update($criteria, Request $request)
     {
-        \DB::beginTransaction();
+        \DB::beginTransaction(); //DB Transaction
         try {
+            $data = $request->input('attributes');//Get data
+            //Get Parameters from URL.
+
             //Validate permissions
-            $this->validatePermission($request, 'user.user.create');
-
-            //Get data
-            $data = $request->input('attributes');
-            $data["email"] = strtolower($data["email"]);//Parse email to lowercase
             $params = $this->getParamsRequest($request);
-            $checkEmail = isset($params->filter->checkEmail) ? $params->filter->checkEmail : false;
 
-            $this->validateRequestApi(new RegisterRequest($data));//Validate Request User
-            $this->validateRequestApi(new CreateUserRequest($data));//Validate custom Request user
+            if ($params->user->id !== $criteria)
+                $this->validatePermission($request, 'user.users.edit');
 
-            if ($checkEmail) //Create user required validate email
-                $user = app(UserRegistration::class)->register($data);
-            else //Create user activated
-                $user =  $this->user->createWithRoles($data, $data["roles"], $data["activated"]);
 
-            $response = ["data" => "User Created"];
-            \DB::commit(); //Commit to Data Base
+            $this->validateRequestApi(new UpdateUserApiRequest($data));
+            $this->validateRequestApi(new CreateFieldsUserRequest($data['fields']));
+
+            //Request to Repository
+            $user = $this->user->getItem($criteria, $params);
+
+            //Break if no found item
+            if (!$user) throw new \Exception('Item not found', 400);
+
+
+            //Validate Request
+            $data['fields'] = $this->validateFields($data['fields']);
+
+            \Log::info(json_encode($data['fields']));
+            if (isset($data['permissions']))
+                $data = $this->mergeRequestWithPermissions($data);
+            if (isset($data['roles']))
+                $this->user->updateAndSyncRoles($user->id, $data, $data['roles']);
+            else
+                $this->user->update($user, $data);
+
+           // $this->serviceHistory->account('a')->to($this->user->id)->push('Actualizacion de Perfil',$this->user->present()->fullName(), null, null,2,$request->getClientIp());
+
+
+            //Response
+            $response = ["data" => ['msg' => trans('user::messages.user updated')]];
+
+            \DB::commit();//Commit to DataBase
         } catch (\Exception $e) {
             \Log::error($e);
             \DB::rollback();//Rollback to Data Base
@@ -198,64 +203,28 @@ class UserApiController extends BaseApiController
      * @param Request $request
      * @return mixed
      */
-    public function update($criteria, Request $request)
+    public function delete($criteria, Request $request)
     {
         \DB::beginTransaction(); //DB Transaction
         try {
+
             //Validate permissions
-            $this->validatePermission($request, 'profile.user.edit');
+            $this->validatePermission($request, 'user.users.delete');
             $data = $request->input('attributes');//Get data
-            $params = $this->getParamsRequest($request);//Get Params
+            //Get Parameters from URL.
+            $params = $this->getParamsRequest($request);
 
-            //Validate Request
-            $this->validateRequestApi(new UpdateUserRequest((array)$data));
+            //Request to Repository
+            $user = $this->user->getItem($criteria, $params);
 
-            if (isset($data["email"])) {
-                $data["email"] = strtolower($data["email"]);
-                $user = $this->user->findByAttributes(["email" => $data["email"]]);
-            }
-            if (!isset($user) || !$user || ($user->id == $data["id"])) {
-                $user = $this->user->findByAttributes(["id" => $data["id"]]);
-                $oldData = $user->toArray();
+            //Break if no found item
+            if (!$user) throw new \Exception('Item not found', 400);
 
-                // configuting activate data to audit
-                if (Activation::completed($user) && !$data['activated'])
-                    $oldData['activated'] = 1;
-                if (!Activation::completed($user) && $data['activated'])
-                    $oldData['activated'] = 0;
+            $this->user->delete($user->id);
 
-                // actually user roles
-                $userRolesIds = $user->roles()->get()->pluck('id')->toArray();
-                $this->user->updateAndSyncRoles($data["id"], $data, []);
-                $user = $this->user->findByAttributes(["id" => $data["id"]]);
+            //Response
+            $response = ["data" => ['msg' => trans('user::messages.user deleted')]];
 
-                // saving old passrond
-                if (isset($data["password"]))
-                    $oldData["password"] = $user->password;
-
-                if (isset($data["roles"])) {
-                    // check roles to Attach and Detach
-                    $rolesToAttach = array_diff(array_values($data['roles']), $userRolesIds);
-                    $rolesToDetach = array_diff($userRolesIds, array_values($data['roles']));
-
-                    // sync roles
-                    if (!empty($rolesToAttach)) {
-                        $user->roles()->attach($rolesToAttach);
-                    }
-                    if (!empty($rolesToDetach)) {
-                        $user->roles()->detach($rolesToDetach);
-                    }
-                }
-                // configuring pasword to audit
-                if (isset($data["password"]))
-                    $data["password"] = $user->password;
-
-                //Response
-                $response = ["data" => $user];
-            } else {
-                $status = 400;
-                $response = ["errors" => $data["email"] . ' | User Name already exist'];
-            }
             \DB::commit();//Commit to DataBase
         } catch (\Exception $e) {
             \Log::error($e);
@@ -267,6 +236,7 @@ class UserApiController extends BaseApiController
         //Return response
         return response()->json($response, $status ?? 200);
     }
+
 
     /**
      * Change password
@@ -321,122 +291,36 @@ class UserApiController extends BaseApiController
 
     }
 
-    /**
-     * Upload media files
-     *
-     * @param Request $request
-     * @return mixed
-     */
-    public function mediaUpload(Request $request)
+
+    public function me(Request $request)
     {
         try {
-            $auth = \Auth::user();
-            $data = $request->all();//Get data
-            $user_id = $data['user'];
-            $name = $data['nameFile'];
-            $file = $request->file('file');
-            $extension = $file->getClientOriginalExtension();
-            $nameFile = $name . '.' . $extension;
-            $allowedextensions = array('JPG', 'JPEG', 'PNG', 'GIF', 'ICO', 'BMP', 'PDF', 'DOC', 'DOCX', 'ODT', 'MP3', '3G2', '3GP', 'AVI', 'FLV', 'H264', 'M4V', 'MKV', 'MOV', 'MP4', 'MPG', 'MPEG', 'WMV');
-            $destination_path = 'assets/user/profile/files/' . $user_id . '/' . $nameFile;
-            $disk = 'publicmedia';
-            if (!in_array(strtoupper($extension), $allowedextensions)) {
-                throw new Exception(trans('iprofile::profile.messages.file not allowed'));
-            }
-            if ($user_id == $auth->id || $auth->hasAccess('user.users.create')) {
-
-                if (in_array(strtoupper($extension), ['JPG', 'JPEG'])) {
-                    $image = \Image::make($file);
-
-                    \Storage::disk($disk)->put($destination_path, $image->stream($extension, '90'));
-                } else {
-
-                    \Storage::disk($disk)->put($destination_path, \File::get($file));
-                }
-
-                $status = 200;
-                $response = ["data" => ['url' => $destination_path]];
-
-
-            } else {
-                $status = 403;
-                $response = [
-                    'error' => [
-                        'code' => '403',
-                        "title" => trans('user::user.messages.access denied'),
-                    ]
-                ];
-            }
-
-        } catch (\Exception $e) {
-            \Log::Error($e);
-            $status = $this->getStatusError($e->getCode());
-            $response = ["errors" => $e->getMessage()];
-        }
-
-        return response()->json($response ?? ["data" => "Request successful"], $status ?? 200);
-    }
-
-    /**
-     * delete media
-     *
-     * @param Request $request
-     * @return mixed
-     */
-    public function mediaDelete(Request $request)
-    {
-        try {
-            $disk = "publicmedia";
-            $auth = \Auth::user();
-            $data = $request->all();//Get data
-            $user_id = $data['user'];
-            $dirdata = $request->input('file');
-
-            if ($user_id == $auth->id || $auth->hasAccess('user.users.create')) {
-
-                \Storage::disk($disk)->delete($dirdata);
-
-                $status = 200;
-                $response = [
-                    'susses' => [
-                        'code' => '201',
-                        "source" => [
-                            "pointer" => url($request->path())
-                        ],
-                        "title" => trans('core::core.messages.resource delete'),
-                        "detail" => [
-                        ]
-                    ]
-                ];
-            } else {
-                $status = 403;
-                $response = [
-                    'error' => [
-                        'code' => '403',
-                        "title" => trans('user::user.messages.access denied'),
-                    ]
-                ];
-            }
-
-        } catch (\Exception $e) {
-            \Log::Error($e);
-            $status = $this->getStatusError($e->getCode());
-            $response = ["errors" => $e->getMessage()];
-        }
-
-        return response()->json($response ?? ["data" => "Request successful"], $status ?? 200);
-    }
-
-    public function me(Request $request){
-        try{
-            $user=Auth::user();
+            $user = Auth::user();
             $response = $this->transformData($request, $user, UserTransformer::class);
-        }catch (\Exception $e){
+        } catch (\Exception $e) {
             $status = $this->getStatusError($e->getCode());
             $response = ["errors" => $e->getMessage()];
         }
 
         //Return response
         return response()->json($response, $status ?? 200);
+    }
+
+    protected function mergeRequestWithPermissions($data)
+    {
+        $permissions = $this->permissions->clean($data['permissions']);
+        return array_merge($data, ['permissions' => $permissions]);
+    }
+
+    protected function validateFields($fields = [])
+    {
+        $fieldsConfig = config('encore.user.config.fields');
+        $data = [];
+        foreach (array_keys($fieldsConfig) as $i => $key) {
+            if (array_key_exists($key, $fields)) {
+                $data[$key] = $fields[$key];
+            }
+        }
+        return $data;
     }
 }

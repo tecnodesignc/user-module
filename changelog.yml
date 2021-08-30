@@ -15,4 +15,14 @@ versions:
             - Profile Controller
             - fake fields column for profile Data
             - Media integration for profile Photo
-            -
+    "1.0.4":
+        added:
+            - Requests for Api
+            - Transformer For Api
+            - Method GetItem and GetItemBy in SentinelRolesRepository
+        changed:
+            - User transformer Base
+            - Messages of User
+            - Search filter in user Repository
+            - PermissionManager added buildPermissionList method
+            - Api for Roles, User and Permissions

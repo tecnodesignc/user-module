@@ -33,7 +33,7 @@ class User extends EloquentUser implements UserInterface, AuthenticatableContrac
      * @var array
      */
     protected $casts = [
-        'fields' => 'json'
+        'fields' => 'array'
     ];
 
     /**
