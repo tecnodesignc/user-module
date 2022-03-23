@@ -11,7 +11,7 @@ final class UserIsUpdating extends AbstractEntityHook implements EntityIsChangin
     /**
      * @var UserInterface
      */
-    private $user;
+    private UserInterface $user;
 
     public function __construct(UserInterface $user, array $data)
     {
@@ -22,7 +22,7 @@ final class UserIsUpdating extends AbstractEntityHook implements EntityIsChangin
     /**
      * @return UserInterface
      */
-    public function getUser()
+    public function getUser(): UserInterface
     {
         return $this->user;
     }

@@ -2,6 +2,7 @@
 
 namespace Modules\User\Events;
 
+use Illuminate\Database\Eloquent\Model;
 use Modules\Media\Contracts\StoringMedia;
 
 class UserWasCreated implements StoringMedia
@@ -21,9 +22,9 @@ class UserWasCreated implements StoringMedia
 
     /**
      * Return the entity
-     * @return \Illuminate\Database\Eloquent\Model
+     * @return Model
      */
-    public function getEntity()
+    public function getEntity():Model
     {
         return $this->user;
     }
@@ -32,7 +33,7 @@ class UserWasCreated implements StoringMedia
      * Return the ALL data sent
      * @return array
      */
-    public function getSubmissionData()
+    public function getSubmissionData():array
     {
         return $this->data;
     }

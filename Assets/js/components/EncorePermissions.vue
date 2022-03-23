@@ -70,7 +70,7 @@
 
 <script>
     import axios from 'axios';
-    import StringHelpers from '../../../../Core/Assets/js/mixins/StringHelpers.vue';
+    import StringHelpers from '../../../../Core/Assets/js/mixins/StringHelpers';
 
     export default {
         mixins: [StringHelpers],

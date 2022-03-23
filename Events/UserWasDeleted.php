@@ -6,26 +6,27 @@ use Modules\Media\Contracts\DeletingMedia;
 
 class UserWasDeleted implements DeletingMedia
 {
+     /**
+     * @var int
+     */
+    private int $userId;
+
     /**
      * @var string
      */
-    private $userClass;
-    /**
-     * @var int
-     */
-    private $userId;
+    private string $userClass;
 
     public function __construct($userId, $userClass)
     {
-        $this->userClass = $userClass;
         $this->userId = $userId;
+        $this->userClass = $userClass;
     }
 
     /**
      * Get the entity ID
      * @return int
      */
-    public function getEntityId()
+    public function getEntityId():int
     {
         return $this->userId;
     }
@@ -34,7 +35,7 @@ class UserWasDeleted implements DeletingMedia
      * Get the class name the imageables
      * @return string
      */
-    public function getClassName()
+    public function getClassName():string
     {
         return $this->userClass;
     }

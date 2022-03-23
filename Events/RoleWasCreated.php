@@ -9,7 +9,7 @@ class RoleWasCreated
     /**
      * @var RoleInterface
      */
-    public $role;
+    public RoleInterface $role;
 
     public function __construct(RoleInterface $role)
     {

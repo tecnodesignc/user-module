@@ -11,7 +11,7 @@ class SendResetCodeEmail
     /**
      * @var Mailer
      */
-    private $mailer;
+    private Mailer $mailer;
 
     public function __construct(Mailer $mailer)
     {

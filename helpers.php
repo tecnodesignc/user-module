@@ -3,7 +3,7 @@
 use Illuminate\Support\Arr;
 
 if (function_exists('current_permission_value') === false) {
-    function current_permission_value($model, $permissionTitle, $permissionAction)
+    function current_permission_value($model, $permissionTitle, $permissionAction): int
     {
         $value = Arr::get($model->permissions, "$permissionTitle.$permissionAction");
         if ($value === true) {
@@ -18,7 +18,7 @@ if (function_exists('current_permission_value') === false) {
 }
 
 if (function_exists('current_permission_value_for_roles') === false) {
-    function current_permission_value_for_roles($model, $permissionTitle, $permissionAction)
+    function current_permission_value_for_roles($model, $permissionTitle, $permissionAction): int
     {
         $value = Arr::get($model->permissions, "$permissionTitle.$permissionAction");
         if ($value === true) {

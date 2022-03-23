@@ -10,13 +10,13 @@ use Modules\User\Events\UserHasRegistered;
 class SendRegistrationConfirmationEmail
 {
     /**
-     * @var AuthenticationRepository
+     * @var Authentication
      */
-    private $auth;
+    private Authentication $auth;
     /**
      * @var Mailer
      */
-    private $mail;
+    private Mailer $mail;
 
     public function __construct(Authentication $auth, Mailer $mail)
     {

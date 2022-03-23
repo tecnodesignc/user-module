@@ -6,8 +6,8 @@ use Cartalyst\Sentinel\Laravel\Facades\Activation;
 use Cartalyst\Sentinel\Users\EloquentUser;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laracasts\Presenter\PresentableTrait;
-use Laravel\Scout\Searchable;
 use Modules\Media\Support\Traits\MediaRelation;
 use Modules\User\Entities\UserInterface;
 use Modules\User\Entities\UserToken;
@@ -17,7 +17,7 @@ use Modules\Media\Entities\File;
 
 class User extends EloquentUser implements UserInterface, AuthenticatableContract
 {
-    use PresentableTrait, Authenticatable, HasApiTokens, Searchable,MediaRelation;
+    use PresentableTrait, Authenticatable, HasApiTokens, MediaRelation;
 
     protected $fillable = [
         'email',
@@ -104,12 +104,21 @@ class User extends EloquentUser implements UserInterface, AuthenticatableContrac
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return HasMany
      */
     public function api_keys()
     {
         return $this->hasMany(UserToken::class);
     }
+    /**
+     *
+     * @return int
+     */
+    public function getUserId(): int
+    {
+        return $this->getKey()??0;
+    }
+
 
     /**
      * @inheritdoc
