@@ -1,20 +1,13 @@
 url: https://github.com/tecnodesignc/user-module
 versions:
-  "1.0.0":
-    added:
-      - Initial release
-  "1.0.1":
-    added:
-      - Controler Api Admin
-  "1.0.2":
-    added:
-      - Changed by encore
-  "1.0.3":
-    added:
-      - PermissionsController
-      - Profile Controller
-      - fake fields column for profile Data
-      - Media integration for profile Photo
+
+  "2.0.1":
+    chamged:
+      - CacheUserTokenDecorator EloquentUserTokenRepository and UserTokenRepository type Attributes and returns
+      - Support for File Drive Cache
+  "2.0.0":
+    changed:
+      - Laravel 9 compatibility
   "1.0.4":
     added:
       - Requests for Api
@@ -26,6 +19,18 @@ versions:
       - Search filter in user Repository
       - PermissionManager added buildPermissionList method
       - Api for Roles, User and Permissions
-  "2.0.0":
-    changed:
-      - Laravel 9 compatibility
+  "1.0.3":
+    added:
+      - PermissionsController
+      - Profile Controller
+      - fake fields column for profile Data
+      - Media integration for profile Photo
+    "1.0.2":
+      added:
+        - Changed by encore
+    "1.0.1":
+      added:
+        - Controler Api Admin
+    "1.0.0":
+      added:
+        - Initial release

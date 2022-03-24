@@ -2,8 +2,10 @@
 
 namespace Modules\User\Repositories\Eloquent;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\QueryException;
 use Modules\Core\Repositories\Eloquent\EloquentBaseRepository;
+use Modules\User\Entities\UserToken;
 use Modules\User\Repositories\UserTokenRepository;
 use Ramsey\Uuid\Uuid;
 
@@ -12,18 +14,18 @@ class EloquentUserTokenRepository extends EloquentBaseRepository implements User
     /**
      * Get all tokens for the given user
      * @param int $userId
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection
      */
-    public function allForUser($userId)
+    public function allForUser(int $userId): Collection
     {
         return $this->model->where('user_id', $userId)->get();
     }
 
     /**
      * @param int $userId
-     * @return \Modules\User\Entities\UserToken
+     * @return UserToken
      */
-    public function generateFor($userId)
+    public function generateFor(int $userId): UserToken
     {
         try {
             $uuid4 = Uuid::uuid4();
@@ -32,6 +34,7 @@ class EloquentUserTokenRepository extends EloquentBaseRepository implements User
             $this->generateFor($userId);
         }
 
+        /** @var UserToken $userToken */
         return $userToken;
     }
 }

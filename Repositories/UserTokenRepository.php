@@ -2,20 +2,22 @@
 
 namespace Modules\User\Repositories;
 
+use Illuminate\Database\Eloquent\Collection;
 use Modules\Core\Repositories\BaseRepository;
+use Modules\User\Entities\UserToken;
 
 interface UserTokenRepository extends BaseRepository
 {
     /**
      * Get all tokens for the given user
      * @param int $userId
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection
      */
-    public function allForUser($userId);
+    public function allForUser(int $userId): Collection;
 
     /**
      * @param int $userId
-     * @return \Modules\User\Entities\UserToken
+     * @return UserToken
      */
-    public function generateFor($userId);
+    public function generateFor(int $userId): UserToken;
 }

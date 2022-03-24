@@ -2,7 +2,7 @@
     "title": "User",
     "name": "User",
     "alias": "user",
-    "description": "The user module is responsible for managing users and permissions.",
+    "description": "The user module for EncoreCMS 2 is responsible for managing users and permissions.",
     "keywords": [
         "EncoreCMS",
         "User"
