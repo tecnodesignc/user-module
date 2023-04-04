@@ -2,14 +2,14 @@
     "title": "User",
     "name": "User",
     "alias": "user",
-    "description": "The user module for EncoreCMS 2 is responsible for managing users and permissions.",
+    "description": "The user module for EncoreCMS 2.1 is responsible for managing users and permissions.",
     "keywords": [
         "EncoreCMS",
         "User"
     ],
     "author": "Marcos Rativa",
     "require": {},
-    "version": "2.0.0",
+    "version": "2.1.0",
     "active": 1,
     "priority": 1,
     "providers": [
@@ -27,5 +27,7 @@
         "composers.php",
         "helpers.php"
     ],
-    "minimumCoreVersion": "2.0"
+    "minimumCoreVersion": "2.1",
+    "compatibility": "2.1",
+    "authors": ["Marcos Rativa"]
 }
