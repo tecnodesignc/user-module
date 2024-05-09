@@ -2,6 +2,7 @@
 
 namespace Modules\User\Http\Middleware;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Modules\User\Contracts\Authentication;
@@ -20,33 +21,34 @@ class TokenCan
      * @var Authentication
      */
     private $auth;
-  /**
-   * @var passportToken
-   */
-  private $passportToken;
+    /**
+     * @var passportToken
+     */
+    private $passportToken;
+
     public function __construct(UserTokenRepository $userToken, Authentication $auth, TokenRepository $passportToken)
     {
         $this->userToken = $userToken;
         $this->auth = $auth;
-      	$this->passportToken = $passportToken;
+        $this->passportToken = $passportToken;
     }
 
     /**
      * @param Request $request
      * @param \Closure $next
      * @param string $permission
-     * @return Response
+     * @return JsonResponse
      */
-    public function handle(Request $request, \Closure $next, $permission)
+    public function handle(Request $request, \Closure $next, $permission):JsonResponse
     {
         if ($request->header('Authorization') === null) {
-            return new Response('Forbidden', Response::HTTP_FORBIDDEN);
+            return response()->json(["error" => trans('core::core.unauthenticated'), 'message' => trans('core::core.unauthenticated-access')], 401);
         }
 
         $user = $this->getUserFromToken($request->header('Authorization'));
 
         if ($user->hasAccess($permission) === false) {
-            return response('Unauthorized.', Response::HTTP_UNAUTHORIZED);
+            return response()->json(["error" => trans('core::core.unauthorized'), 'message' => trans('core::core.permission denied',['permission'=>$permission])], 401);
         }
 
         return $next($request);
@@ -56,25 +58,18 @@ class TokenCan
      * @param string $token
      * @return UserInterface
      */
-    private function getUserFromToken($token)
+    private function getUserFromToken($token):UserInterface
     {
         $token = $this->userToken->findByAttributes(['access_token' => $this->parseToken($token)]);
 
-      // imagina patch: add validate with passport token
-      if($token === null){
-        $id = (new Parser())->parse($this->parseToken($token))->getHeader('jti');
-        $token = $this->passportToken->find($id);
-        if ($token === null)
-          return false;
-      }
-      return $token->user;
+        return $token->user;
     }
 
     /**
      * @param string $token
      * @return string
      */
-    private function parseToken($token)
+    private function parseToken($token):string
     {
         return str_replace('Bearer ', '', $token);
     }

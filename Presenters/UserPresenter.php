@@ -15,11 +15,11 @@ class UserPresenter extends Presenter
     public function gravatar($size = 90)
     {
 
-        if (!isset($this->mainimage->path)) {
+        if (!isset($this->avatar->path)) {
             $email = md5($this->email);
             $image="https://www.gravatar.com/avatar/$email?s=$size";
         } else {
-            $image=$this->mainimage->path;
+            $image=$this->avatar->path;
         }
         return $image;
     }

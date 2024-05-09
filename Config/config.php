@@ -63,34 +63,7 @@ return [
         'last_name',
         'fields'
     ],
-    /*
-    |--------------------------------------------------------------------------
-    | Fillable user fields
-    |--------------------------------------------------------------------------
-    | Set the fillable user fields, those fields will be mass assigned
-    */
-    'fiels' => [
-       /* 'document'=>[
-            'type'=>'text',
-            'description'=>'document',
-        ],
-        'bio'=>[
-            'type'=>'textarea',
-            'description'=>'bio',
-        ],*/
-        'rules'=>[
-           // 'identification' => 'required|min:3',
-        ]
-    ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Custom date fields
-    |--------------------------------------------------------------------------
-    | Set the fields that will be cast to Carbon dates
-    */
-    'dates' => [
-    ],
     /*
     |--------------------------------------------------------------------------
     | Custom casted fields

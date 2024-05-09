@@ -18,6 +18,11 @@ use Modules\Media\Entities\File;
 class User extends EloquentUser implements UserInterface, AuthenticatableContract
 {
     use PresentableTrait, Authenticatable, HasApiTokens, MediaRelation;
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
 
     protected $fillable = [
         'email',
@@ -49,9 +54,6 @@ class User extends EloquentUser implements UserInterface, AuthenticatableContrac
         $this->fillable = config('encore.user.config.fillable');
         if (config()->has('encore.user.config.presenter')) {
             $this->presenter = config('encore.user.config.presenter', UserPresenter::class);
-        }
-        if (config()->has('encore.user.config.dates')) {
-            $this->dates = config('encore.user.config.dates', []);
         }
         if (config()->has('encore.user.config.casts')) {
             $this->casts = config('encore.user.config.casts', []);
@@ -134,9 +136,9 @@ class User extends EloquentUser implements UserInterface, AuthenticatableContrac
         return $userToken->access_token;
     }
 
-    public function getMainImageAttribute()
+    public function getAvatarAttribute()
     {
-        $thumbnail = $this->files()->where('zone', 'mainimage')->first();
+        $thumbnail = $this->files()->where('zone', 'avatar')->first();
         if (!$thumbnail) {
             $image = [
                 'mimeType' => 'image/jpeg',

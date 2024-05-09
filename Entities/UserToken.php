@@ -3,6 +3,7 @@
 namespace Modules\User\Entities;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo as BelongsToAlias;
 use Modules\User\Entities\Sentinel\User;
 
 class UserToken extends Model
@@ -11,7 +12,7 @@ class UserToken extends Model
     protected $fillable = ['user_id', 'access_token'];
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return BelongsToAlias
      */
     public function user()
     {

@@ -45,9 +45,9 @@ class AuthController extends BasePublicController
 
         $user = $this->auth->user();
         event(new UserLoggedIn($user));
+        return redirect()->route(config('encore.user.config.redirect_route_after_login'))
+            ->withSuccess(trans('user::messages.successfully logged in'));
 
-        return redirect()->intended(route(config('encore.user.config.redirect_route_after_login')))
-                ->withSuccess(trans('user::messages.successfully logged in'));
     }
 
     public function getRegister()

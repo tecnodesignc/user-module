@@ -2,8 +2,73 @@
 
 use Illuminate\Routing\Router;
 
+$router->group(['prefix' => '/auth'], function (Router $router) {
+
+    /** @var Router $router */
+    $router->post('reset', [
+        'as' => 'api.user.reset',
+        'uses' => 'AuthApiController@reset',
+    ]);
+    /** @var Router $router */
+    $router->post('reset-complete', [
+        'as' => 'api.user.reset-complete',
+        'uses' => 'AuthApiController@resetComplete',
+    ]);
+
+    $router->post('register', [
+        'as' => 'api.auth.register',
+        'uses' => 'AuthApiController@register',
+    ]);
+
+    /** @var Router $router */
+    $router->post('login', [
+        'as' => 'api.user.login',
+        'uses' => 'AuthApiController@login',
+    ]);
+
+    /** @var Router $router */
+    $router->get('logout', [
+        'as' => 'api.user.logout',
+        'uses' => 'AuthApiController@logout',
+        'middleware' => ['api.token']
+    ]);
+
+    /** @var Router $router */
+    $router->get('must-change-password', [
+        'as' => 'api.user.me.must.change.password',
+        'uses' => 'AuthApiController@mustChangePassword',
+        'middleware' => ['api.token']
+    ]);
+
+    /** @var Router $router */
+    $router->get('impersonate', [
+        'as' => 'api.profile.impersonate',
+        'uses' => 'AuthApiController@impersonate',
+        'middleware' => ['api.token']
+    ]);
+
+    /** @var Router $router */
+    $router->get('refresh-token', [
+        'as' => 'api.user.refresh.token',
+        'uses' => 'AuthApiController@refreshToken',
+        'middleware' => ['api.token']
+    ]);
+
+    #==================================================== Social
+    $router->post('social/{provider}', [
+        'as' => 'api.user.social.auth',
+        'uses' => 'AuthApiController@getSocialAuth'
+    ]);
+
+    $router->get('social/callback/{provider}', [
+        'as' => 'api.user.social.callback',
+        'uses' => 'AuthApiController@getSocialAuthCallback'
+    ]);
+
+});
+
 /** @var Router $router */
-$router->group(['prefix' => '/user', 'middleware' => ['api.token', 'auth.admin']], function (Router $router) {
+$router->group(['prefix' => '/user', 'middleware' => ['api.token']], function (Router $router) {
     $router->group(['prefix' => 'roles'], function (Router $router) {
         $router->get('/', [
             'as' => 'api.user.role.index',
@@ -113,19 +178,4 @@ $router->group(['prefix' => '/user', 'middleware' => ['api.token', 'auth.admin']
         'middleware' => 'token-can:user.roles.index',
     ]);
 });
-$router->group(['prefix' => '/user/v1'], function (Router $router) {
-//======  AUTH
-    require('ApiRoutes/authRoutes.php');
 
-//======  ROLES
-    require('ApiRoutes/roleRoutes.php');
-
-//======  USERS
-    require('ApiRoutes/userRoutes.php');
-
-    $router->get('/permissions', [
-        'as' => 'api.user.permissions',
-        'uses' => 'PermissionsApiController@index',
-        //'middleware' => ['auth:api']
-    ]);
-});

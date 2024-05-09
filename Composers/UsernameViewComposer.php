@@ -10,14 +10,18 @@ class UsernameViewComposer
     /**
      * @var Authentication
      */
-    private $auth;
+    private Authentication $auth;
 
     public function __construct(Authentication $auth)
     {
         $this->auth = $auth;
     }
 
-    public function compose(View $view)
+    /**
+     * @param View $view
+     * @return void
+     */
+    public function compose(View $view): void
     {
         $view->with('user', $this->auth->user());
     }

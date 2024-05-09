@@ -1,8 +1,10 @@
 url: https://github.com/tecnodesignc/user-module
 versions:
-  "2.1.0":
+  "3.0.0":
     changed:
       - Laravel 10 compatibility
+      - Delete Transformers New
+      - Delete Api V1 routes an Controllers
   "2.0.1":
     chamged:
       - CacheUserTokenDecorator EloquentUserTokenRepository and UserTokenRepository type Attributes and returns

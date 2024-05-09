@@ -2,6 +2,7 @@
 
 namespace Modules\User\Http\Middleware;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Modules\User\Contracts\Authentication;
@@ -20,10 +21,10 @@ class AuthorisedApiToken
      */
     private $auth;
 
-  /**
-   * @var passportToken
-   */
-  private $passportToken;
+    /**
+     * @var passportToken
+     */
+    private $passportToken;
 
     public function __construct(UserTokenRepository $userToken, Authentication $auth, TokenRepository $passportToken)
     {
@@ -35,11 +36,11 @@ class AuthorisedApiToken
     public function handle(Request $request, \Closure $next)
     {
         if ($request->header('Authorization') === null) {
-            return new Response('Forbidden', 403);
+            return response()->json(["error" => trans('core::core.unauthenticated'), 'message' => trans('core::core.unauthenticated-access')], 401);
         }
 
         if ($this->isValidToken($request->header('Authorization')) === false) {
-            return new Response('Forbidden', 403);
+            return response()->json(["error" => trans('core::core.unauthorized'), 'message' => trans('core::core.unauthorized-access')], 401);
         }
 
         return $next($request);
@@ -50,16 +51,16 @@ class AuthorisedApiToken
         $found = $this->userToken->findByAttributes(['access_token' => $this->parseToken($token)]);
 
         if ($found === null) {
-            // Imagina Patch: Add validation with passport token
-            //$id = (new Parser())->parse($this->parseToken($token))->getHeader('jti');
             $user = auth('api')->user();//$this->passportToken->find($id);
             if ($user === null)
                 return false;
-        }else
+        } else
             $user = $found->user;
-
+        if (!$user->isActivated()) return false;
         $this->auth->logUserIn($user);
-
+        if (!$this->auth->hasAccess('account.api-keys.index')) {
+            return false;
+        }
         return true;
     }
 

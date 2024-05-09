@@ -9,14 +9,14 @@ class PermissionsViewComposer
     /**
      * @var PermissionManager
      */
-    private $permissions;
+    private PermissionManager $permissions;
 
     public function __construct(PermissionManager $permissions)
     {
         $this->permissions = $permissions;
     }
 
-    public function compose($view)
+    public function compose($view): void
     {
         // Get all permissions
         $view->permissions = $this->permissions->all();

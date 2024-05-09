@@ -4,6 +4,8 @@ view()->composer(
     [
         'user::admin.partials.permissions',
         'user::admin.partials.permissions-create',
+        'permissions.partials.permissions',
+        'permissions.partials.permissions-create',
     ],
     'Modules\User\Composers\PermissionsViewComposer'
 );

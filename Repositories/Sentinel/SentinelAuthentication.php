@@ -9,6 +9,7 @@ use Cartalyst\Sentinel\Laravel\Facades\Reminder;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Cartalyst\Sentinel\Users\UserInterface;
 use Modules\User\Contracts\Authentication;
+use Modules\User\Entities\UserInterface as UserModelInterface;
 use Modules\User\Events\UserHasActivatedAccount;
 
 class SentinelAuthentication implements Authentication
@@ -19,7 +20,7 @@ class SentinelAuthentication implements Authentication
      * @param  bool  $remember    Remember the user
      * @return mixed
      */
-    public function login(array $credentials, $remember = false)
+    public function login(array $credentials, $remember = false): mixed
     {
         try {
             if (Sentinel::authenticate($credentials, $remember)) {
@@ -39,9 +40,9 @@ class SentinelAuthentication implements Authentication
     /**
      * Register a new user.
      * @param  array $user
-     * @return bool
+     * @return bool|UserInterface
      */
-    public function register(array $user)
+    public function register(array $user): bool|UserInterface
     {
         return Sentinel::getUserRepository()->create((array) $user);
     }
@@ -52,7 +53,7 @@ class SentinelAuthentication implements Authentication
      * @param  \Modules\User\Repositories\RoleRepository $role
      * @return mixed
      */
-    public function assignRole($user, $role)
+    public function assignRole($user, $role): mixed
     {
         return $role->users()->attach($user);
     }
@@ -61,7 +62,7 @@ class SentinelAuthentication implements Authentication
      * Log the user out of the application.
      * @return bool
      */
-    public function logout()
+    public function logout(): mixed
     {
         return Sentinel::logout();
     }
@@ -72,7 +73,7 @@ class SentinelAuthentication implements Authentication
      * @param  string $code
      * @return mixed
      */
-    public function activate($userId, $code)
+    public function activate($userId, $code): mixed
     {
         $user = Sentinel::findById($userId);
 
@@ -89,7 +90,7 @@ class SentinelAuthentication implements Authentication
      * @param  \Modules\User\Repositories\UserRepository $user
      * @return mixed
      */
-    public function createActivation($user)
+    public function createActivation($user): mixed
     {
         return Activation::create($user)->code;
     }
@@ -99,7 +100,7 @@ class SentinelAuthentication implements Authentication
      * @param  \Modules\User\Repositories\UserRepository $user
      * @return mixed
      */
-    public function createReminderCode($user)
+    public function createReminderCode($user): mixed
     {
         $reminder = Reminder::exists($user) ?: Reminder::create($user);
 
@@ -113,7 +114,7 @@ class SentinelAuthentication implements Authentication
      * @param  string $password
      * @return bool
      */
-    public function completeResetPassword($user, $code, $password)
+    public function completeResetPassword($user, $code, $password): bool
     {
         return Reminder::complete($user, $code, $password);
     }
@@ -149,9 +150,9 @@ class SentinelAuthentication implements Authentication
 
     /**
      * Get the currently logged in user
-     * @return \Modules\User\Entities\UserInterface
+     * @return UserModelInterface|bool
      */
-    public function user()
+    public function user(): UserModelInterface|bool
     {
         return Sentinel::check();
     }

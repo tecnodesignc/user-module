@@ -3,8 +3,10 @@
 namespace Modules\User\Guards;
 
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel as SentinelFacade;
+use Cartalyst\Sentinel\Users\UserInterface as UserInterface;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Guard as LaravelGuard;
+use Modules\User\Entities\Sentinel\User;
 
 class Sentinel implements LaravelGuard
 {
@@ -32,9 +34,9 @@ class Sentinel implements LaravelGuard
 
     /**
      * Get the currently authenticated user.
-     * @return Authenticatable|null
+     * @return UserInterface|Authenticatable|null
      */
-    public function user(): ?Authenticatable
+    public function user(): UserInterface|Authenticatable|null
     {
         return SentinelFacade::getUser();
     }
@@ -85,9 +87,9 @@ class Sentinel implements LaravelGuard
     /**
      * @param array $credentials
      * @param bool $remember
-     * @return bool
+     * @return bool|User
      */
-    public function attempt(array $credentials, bool $remember = false): bool
+    public function attempt(array $credentials, bool $remember = false): bool|User
     {
         return SentinelFacade::authenticate($credentials, $remember);
     }

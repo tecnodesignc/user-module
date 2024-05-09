@@ -32,26 +32,18 @@ class AuthApiController extends BaseApiController
         $this->clearTokens();
     }
 
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
         try {
-            $data = $request->input('attributes') ?? [];//Get data
-
-            $this->validateRequestApi(new LoginRequest($data));
-
-
+            $data = $request->all() ?? [];//Get data
 
             $user = auth()->attempt($data);
             if (!$user) {
                 throw new \Exception(trans('user::messages.user or password invalid'), 401);
             }
             $token = $this->getToken($user);
-            $response = [
-                'userData' => new UserLoginTransformer($user),
-                'userToken' => 'Bearer ' . $token->accessToken,
-                'expiresIn' => $token->token->expires_at,
-                'msg'=>trans('user::messages.successfully logged in')
-            ];
+
+            $response =  new UserLoginTransformer($user);
         } catch (\Exception $e) {
             $status = $this->getStatusError($e->getCode());
             $response = ["errors" => $e->getMessage()];
@@ -70,8 +62,8 @@ class AuthApiController extends BaseApiController
     public function logout(Request $request)
     {
         try {
-            $token = $this->validateResponseApi($this->getRequestToken($request));//Get Token
-            DB::table('oauth_access_tokens')->where('id', $token->id)->delete();//Delete Token
+           /* $token = $this->validateResponseApi($this->getRequestToken($request));//Get Token
+            DB::table('oauth_access_tokens')->where('id', $token->id)->delete();//Delete Token*/
             $response = ["msg" => trans('user::messages.successfully logged out')];
 
         } catch (Exception $e) {
@@ -110,13 +102,10 @@ class AuthApiController extends BaseApiController
     }
 
 
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
         try {
-            $data = $request->input('attributes') ?? [];//Get data
-
-            $this->validateRequestApi(new RegisterRequest($data));
-
+            $data = $request->all();//Get data
             app(UserRegistration::class)->register($data);
             $response = ["data" => ['msg' => trans('user::messages.account created check email for activation'), 'email' => $data['email']]];
         } catch (\Exception $e) {
